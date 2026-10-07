@@ -73,9 +73,14 @@ class AssetTests(unittest.TestCase):
             self.assertIsNotNone(ImageChops.difference(base, en).getbbox())
             self.assertIsNotNone(ImageChops.difference(base, mr).getbbox())
             self.assertIsNotNone(ImageChops.difference(en, mr).getbbox())
+            timestamps = {p: p.stat().st_mtime_ns for p in output.iterdir()}
+            build(config, ROOT / "assets/landscape.png", output, if_needed=True)
+            self.assertEqual(timestamps, {p: p.stat().st_mtime_ns for p in timestamps})
             (output / "mr-002.png").write_bytes(b"corrupt")
             with self.assertRaises(ValueError):
                 validate(config, output)
+            build(config, ROOT / "assets/landscape.png", output, if_needed=True)
+            validate(config, output)
 
 
 class InstallationTests(unittest.TestCase):
@@ -84,11 +89,56 @@ class InstallationTests(unittest.TestCase):
             target = Path(d) / "profile"
             self.assertIsNone(install(ROOT, target))
             (target / "kitty.conf").write_text("original customization")
-            backup = install(ROOT, target)
+            backup = install(ROOT, target, force=True)
             self.assertEqual((backup / "kitty.conf").read_text(), "original customization")
             saved = restore(backup, target)
             self.assertEqual((target / "kitty.conf").read_text(), "original customization")
             self.assertTrue((saved / "fish/config.fish").is_file())
+
+    def test_noop_preserves_file_and_manifest_timestamps(self):
+        with tempfile.TemporaryDirectory() as d:
+            target = Path(d) / "profile"
+            install(ROOT, target)
+            before = {p: p.stat().st_mtime_ns for p in target.rglob("*") if p.is_file()}
+            self.assertIsNone(install(ROOT, target))
+            self.assertEqual(before, {p: p.stat().st_mtime_ns for p in before})
+
+    def test_local_edit_survives_and_upstream_conflict_is_atomic(self):
+        with tempfile.TemporaryDirectory() as d:
+            root, target = Path(d) / "repo", Path(d) / "profile"
+            import shutil
+            shutil.copytree(ROOT / "config", root / "config")
+            install(root, target)
+            edited = target / "kitty.conf"
+            edited.write_text("my local theme")
+            self.assertIsNone(install(root, target))
+            self.assertEqual(edited.read_text(), "my local theme")
+            (root / "config/kitty.conf").write_text("upstream theme")
+            (root / "config/starship.toml").write_text("new upstream prompt")
+            prior_prompt = (target / "starship.toml").read_bytes()
+            with self.assertRaisesRegex(ValueError, "Configuration conflicts"):
+                install(root, target)
+            self.assertEqual(edited.read_text(), "my local theme")
+            self.assertEqual((target / "starship.toml").read_bytes(), prior_prompt)
+            backup = install(root, target, force=True)
+            self.assertEqual((backup / "kitty.conf").read_text(), "my local theme")
+            self.assertEqual(edited.read_text(), "upstream theme")
+
+    def test_only_changed_upstream_file_is_copied_and_removed_owned_file_is_backed_up(self):
+        with tempfile.TemporaryDirectory() as d:
+            root, target = Path(d) / "repo", Path(d) / "profile"
+            import shutil
+            shutil.copytree(ROOT / "config", root / "config")
+            install(root, target)
+            unmodified = target / "starship.toml"
+            before = unmodified.stat().st_mtime_ns
+            (root / "config/kitty.conf").write_text("changed upstream")
+            (root / "config/fish/functions/fish_prompt.fish").unlink()
+            backup = install(root, target)
+            self.assertEqual(unmodified.stat().st_mtime_ns, before)
+            self.assertEqual((target / "kitty.conf").read_text(), "changed upstream")
+            self.assertFalse((target / "fish/functions/fish_prompt.fish").exists())
+            self.assertTrue((backup / "fish/functions/fish_prompt.fish").is_file())
 
 
 class ControllerTests(unittest.TestCase):

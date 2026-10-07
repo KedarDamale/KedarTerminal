@@ -8,6 +8,29 @@ and your login shell is not changed. PATH is inherited from the launcher.
 Run these commands from the repository in Bash:
 
 ```bash
+make setup
+make launch
+```
+
+`make setup` (also available as `make set`) installs Ubuntu dependencies with
+sudo, then syncs the dedicated profile, prepares assets and checks the setup.
+Run Make as your normal user; only the dependency commands use sudo.
+For later changes, close managed terminal windows, then run:
+
+```bash
+make update
+make launch
+```
+
+`make update` copies only changed configuration files and reuses the frame cache
+when settings, wallpaper, font and renderer code are unchanged. Runtime Python
+code is read directly from this checkout on the next launch. Editing runtime
+code does not require reinstalling dependencies. `make static` opens static mode.
+For a checkout-local trial use `make update PROFILE=.cache/profile FRAMES=.cache/frames`.
+
+The equivalent individual commands are:
+
+```bash
 sudo apt update
 sudo apt install kitty fish starship fonts-firacode fonts-noto-core python3-pil fontconfig
 python3 scripts/kedar-terminal install
@@ -71,8 +94,9 @@ suggestion. Optional installed zoxide is initialized automatically.
 
 ## Backup and restore
 
-Reinstalling backs up the dedicated profile to a timestamped sibling. The
-installer prints its exact location. Restore with:
+Replacing or removing managed files backs up the dedicated profile to a
+timestamped sibling. Unchanged runs do not copy files or create backups. The
+installer prints the backup's exact location. Restore with:
 
 ```bash
 python3 scripts/kedar-terminal restore ~/.config/kedar-terminal.backup-TIMESTAMP
@@ -80,6 +104,24 @@ python3 scripts/kedar-terminal restore ~/.config/kedar-terminal.backup-TIMESTAMP
 
 The replaced profile is kept as a `before-restore` sibling. Close managed
 windows before installing, restoring, or rebuilding cached frames.
+
+The installer tracks the last shipped content of each configuration file in
+`.kedar-install.json`. Edits made only in the installed profile survive updates.
+If a file changed in both the repository and the installed profile, the update
+stops before changing any configuration. Merge the named files yourself, or
+explicitly select the repository version with:
+
+```bash
+python3 scripts/kedar-terminal install --force
+make update
+```
+
+Force installation backs up and replaces locally edited regular files. An
+older profile without an install manifest is adopted automatically when its
+files match; different preexisting files are reported as conflicts. Git merge
+conflicts when pulling the repository must still be resolved in Git. If you
+install a Python wheel instead of running from this checkout, reinstall that
+wheel after changing its code.
 
 ## Checkout-local trial
 

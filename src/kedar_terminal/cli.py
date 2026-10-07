@@ -17,11 +17,13 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--profile", type=Path, default=xdg("CONFIG"), help="Isolated Kitty/Fish config directory")
     p.add_argument("--frames", type=Path, default=xdg("CACHE") / "frames")
     sub = p.add_subparsers(dest="operation", required=True)
-    sub.add_parser("install", help="Install dedicated profile; back up an existing profile")
+    install = sub.add_parser("install", help="Sync changed profile files; preserve local edits and detect conflicts")
+    install.add_argument("--force", action="store_true", help="Back up and replace locally edited regular files")
     restore = sub.add_parser("restore")
     restore.add_argument("backup", type=Path)
     build = sub.add_parser("build", help="Generate offline bilingual background frames")
     build.add_argument("--config", type=Path)
+    build.add_argument("--if-needed", action="store_true", help="Reuse validated frames when inputs are unchanged")
     sub.add_parser("doctor")
     launch = sub.add_parser("launch")
     launch.add_argument("--mode", choices=["animated", "static"], default="animated")
@@ -52,16 +54,16 @@ def main(argv=None) -> int:
         op = args.operation
         if op == "install":
             from .install import install
-            backup = install(args.root, args.profile)
-            print(f"Profile: {args.profile}\nBackup: {backup or 'none (first installation)'}")
+            backup = install(args.root, args.profile, force=args.force)
+            print(f"Profile: {args.profile}\nBackup: {backup or 'none (no existing files replaced)'}")
         elif op == "restore":
             from .install import restore
             print(f"Saved replaced profile: {restore(args.backup.expanduser().resolve(), args.profile)}")
         elif op == "build":
             from .assets import build
             config_path = args.config or args.profile / "animation.toml"
-            result = build(load(config_path), args.root / "assets/landscape.png", args.frames)
-            print(f"Built {len(result['files'])} PNGs in {args.frames}")
+            result = build(load(config_path), args.root / "assets/landscape.png", args.frames, if_needed=args.if_needed)
+            print(f"Frames ready: {len(result['files'])} PNGs in {args.frames}")
         elif op == "launch":
             from .assets import validate
             from .launcher import launch

@@ -8,6 +8,11 @@
 > The specification below is preserved; its proposed milestones and unchecked
 > desktop acceptance items are not claims of completed hardware validation.
 
+First setup: `make setup`, then `make launch`. After editing this checkout:
+close managed terminal windows, run `make update`, then `make launch`.
+Updates sync changed files, preserve local-only edits, stop on conflicting
+edits, and reuse unchanged frame assets. `make static` opens the static theme.
+
 ```text
 assets/              Tracked landscape and artwork provenance
 config/              Kitty, Fish, Starship and animation defaults

@@ -67,10 +67,21 @@ def marathi_mask(font: Path) -> Image.Image:
     return ImageChops.multiply(mask, grid)
 
 
-def build(config: dict, landscape: Path, output: Path) -> dict:
+def build(config: dict, landscape: Path, output: Path, if_needed: bool = False) -> dict:
     if output.exists() and any(output.iterdir()) and not (output / "manifest.json").is_file():
         raise ValueError("Frame destination contains unrelated files; choose a dedicated cache directory")
     font = devanagari_font(config)
+    inputs = {"landscape_sha256": hashlib.sha256(landscape.read_bytes()).hexdigest(),
+              "font_sha256": hashlib.sha256(font.read_bytes()).hexdigest(),
+              "renderer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
+    if if_needed:
+        try:
+            manifest = validate(config, output)
+            if all(manifest.get(key) == value for key, value in inputs.items()):
+                print("Frame inputs unchanged; reusing cached backgrounds")
+                return manifest
+        except (OSError, ValueError, KeyError):
+            pass
     p, a = config["appearance"], config["animation"]
     output.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix="frames-", dir=output.parent))
@@ -95,8 +106,7 @@ def build(config: dict, landscape: Path, output: Path) -> dict:
                 frame.save(staging / f"{language}-{step:03}.png")
         shutil.copy2(staging / f"en-{a['steps']:03}.png", staging / "static.png")
         manifest = {"schema": 1, "config_hash": fingerprint(config),
-                    "landscape_sha256": hashlib.sha256(landscape.read_bytes()).hexdigest(),
-                    "font": str(font), "font_sha256": hashlib.sha256(font.read_bytes()).hexdigest(),
+                    **inputs, "font": str(font),
                     "dimensions": [base.width, base.height], "steps": a["steps"],
                     "files": {f.name: hashlib.sha256(f.read_bytes()).hexdigest()
                               for f in sorted(staging.glob("*.png"))}}
