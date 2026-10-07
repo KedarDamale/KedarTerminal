@@ -6,7 +6,9 @@ The previous Kitty/Fish/Starship application, Python package, animation controll
 tests and build tools have been removed.
 
 ```text
-config/bash/kedar.bash       Bash greeting and prompt
+config/bash/kedar.bash       Bash greeting, prompt and editor attachment
+config/bash/ble-start.bash   Load Bash suggestions before other startup settings
+config/bash/ble-init.bash    Suggestion and completion settings
 config/native/kedar.palette Ptyxis colors
 assets/landscape.png         Version-controlled wallpaper reference
 LICENSE                     Apache-2.0
@@ -22,6 +24,32 @@ navy background: it does **not** display an aurora image or animated lettering.
 The saved landscape remains an artwork reference. There is no animation process
 or separate terminal launcher.
 
+## Suggestions and completion
+
+The existing Bash terminal now loads [ble.sh](https://github.com/akinomyoga/ble.sh)
+for dim inline suggestions, syntax highlighting and a Tab completion menu.
+`bash-completion` was already installed. Suggestions come from shell history and
+available completions; no cloud service is used.
+
+Open a new normal terminal after installation. Right Arrow accepts the suggested
+suffix when the cursor is at the end of the line. Tab opens/completes commands,
+paths and supported arguments; Tab/Shift+Tab navigate multiple candidates.
+Ctrl+R searches history. Suggestions use a 250 ms delay.
+
+ble.sh is installed at `~/.local/share/blesh`; no Fish, Kitty or Starship is
+required. The Bash suggestion loader is a separate marked block at the start
+of `.bashrc`, and the theme attaches the editor at the end. The installed build
+is `0.4.0-nightly+d81fd54`. The original startup file before this change is saved
+under `native/backups/completion-20261007T143532/`.
+
+To disable suggestions, remove the marked loader block:
+
+```bash
+sed -i '/^# >>> Kedar Bash suggestions >>>$/,/^# <<< Kedar Bash suggestions <<<$/d' ~/.bashrc
+```
+
+Then open a new terminal. The palette and prompt remain configured.
+
 ## Updating the theme files
 
 After editing the tracked configuration, copy it into the installed locations:
@@ -30,6 +58,8 @@ After editing the tracked configuration, copy it into the installed locations:
 mkdir -p ~/.config/kedar-terminal/native
 mkdir -p ~/.local/share/org.gnome.Ptyxis/palettes
 cp config/bash/kedar.bash ~/.config/kedar-terminal/native/kedar.bash
+cp config/bash/ble-start.bash ~/.config/kedar-terminal/native/ble-start.bash
+cp config/bash/ble-init.bash ~/.config/kedar-terminal/native/ble-init.bash
 cp config/native/kedar.palette ~/.local/share/org.gnome.Ptyxis/palettes/kedar.palette
 ```
 

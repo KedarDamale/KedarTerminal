@@ -19,3 +19,7 @@ if [[ ${TERM:-dumb} != dumb ]]; then
         printf '\033[90m%s\033[0m\n\n' "$(date '+%A, %d %B · %H:%M')"
     fi
 fi
+
+if declare -F ble-attach >/dev/null; then
+    ble-attach
+fi
