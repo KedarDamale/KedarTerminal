@@ -1,6 +1,7 @@
 """Linux /proc process-tree sampling and PTY shell-startup measurements."""
 import csv
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -36,7 +37,7 @@ def tree(snapshot: dict, roots: list[int]) -> dict:
 
 
 def monitor(roots: list[int], seconds: float, interval: float, label: str, output: Path) -> dict:
-    if seconds <= 0 or interval < 0.1:
+    if not math.isfinite(seconds) or not math.isfinite(interval) or seconds <= 0 or interval < 0.1:
         raise ValueError("Duration must be positive; interval must be at least 0.1 s")
     snapshot = processes()
     if any(pid not in snapshot for pid in roots):

@@ -38,7 +38,7 @@ def run(owner, runtime: Path, address: str, config_path: Path, frames: Path, mod
         if image != last_image:
             try:
                 renderer.show(image)
-                last_image, failures = image, 0
+                last_image, failures, health = image, 0, "ok"
             except Exception as error:
                 failures += 1
                 health = str(error)

@@ -68,6 +68,8 @@ def marathi_mask(font: Path) -> Image.Image:
 
 
 def build(config: dict, landscape: Path, output: Path) -> dict:
+    if output.exists() and any(output.iterdir()) and not (output / "manifest.json").is_file():
+        raise ValueError("Frame destination contains unrelated files; choose a dedicated cache directory")
     font = devanagari_font(config)
     p, a = config["appearance"], config["animation"]
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -113,6 +115,11 @@ def validate(config: dict, frames: Path) -> dict:
     manifest = json.loads((frames / "manifest.json").read_text())
     if manifest["config_hash"] != fingerprint(config):
         raise ValueError("Animation settings changed; run build before launch")
+    expected_names = {"blank.png", "static.png"} | {
+        f"{language}-{step:03}.png" for language in ("en", "mr")
+        for step in range(1, config["animation"]["steps"] + 1)}
+    if set(manifest["files"]) != expected_names:
+        raise ValueError("Incomplete frame manifest; run build")
     for name, expected in manifest["files"].items():
         path = frames / name
         if path.parent != frames or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
