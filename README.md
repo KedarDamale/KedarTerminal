@@ -59,15 +59,15 @@ sed -i '/^# >>> Kedar Terminal Bash theme >>>$/,/^# <<< Kedar Terminal Bash them
 
 Restore individual terminal preferences from `before.json` using `gsettings set`.
 
-## Removing the superseded packages
+## Superseded packages removed
 
-These packages were introduced by the earlier terminal setup. Removal requires
-sudo authentication in your own terminal:
+These 12 packages introduced by the earlier setup have been purged, freeing
+approximately 105 MB:
 
 ```bash
-sudo apt-get purge -y kitty kitty-shell-integration kitty-terminfo kitty-doc \
-  fish fish-common starship fonts-firacode fonts-font-awesome \
-  fonts-material-design-icons-iconfont fonts-weather-icons xsel
+kitty, kitty-shell-integration, kitty-terminfo, kitty-doc,
+fish, fish-common, starship, fonts-firacode, fonts-font-awesome,
+fonts-material-design-icons-iconfont, fonts-weather-icons, xsel
 ```
 
 The separate Kitty/Fish profile, generated frame cache, downloaded test packages,
