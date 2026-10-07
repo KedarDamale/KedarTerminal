@@ -1,5 +1,23 @@
 # Kedar Terminal — Complete Requirements and Solution Map
 
+> **Implementation added:** The repository now includes a Kitty/Fish profile,
+> bilingual background-frame builder, managed launcher, animation controls,
+> backup/restore, and CPU/RSS plus shell-startup measurement tools. Start with
+> [setup and usage](docs/SETUP.md) and [performance comparison](docs/PERFORMANCE.md).
+> The version-controlled background is [assets/landscape.png](assets/landscape.png).
+> The specification below is preserved; its proposed milestones and unchecked
+> desktop acceptance items are not claims of completed hardware validation.
+
+```text
+assets/              Tracked landscape and artwork provenance
+config/              Kitty, Fish, Starship and animation defaults
+src/kedar_terminal/  Asset preparation, runtime, controls and measurements
+scripts/             Checkout-local CLI
+tests/               Automated behavior and failure checks
+docs/                Setup, restoration and performance methodology
+reports/             Ignored local CSV/JSON measurement outputs
+```
+
 A personalized Ubuntu terminal with a dark teal aurora background, a startup greeting, command suggestions, a compact prompt, and a repeating English–Marathi name animation.
 
 **Required loop:** KEDAR writes on → holds → writes off → केदार writes on → holds → writes off → repeat.
@@ -607,4 +625,3 @@ Documentation checked on 7 October 2026:
 10. [Starship guide](https://starship.rs/guide/)
 11. [Pillow text-layout dependencies](https://pillow.readthedocs.io/en/stable/installation/building-from-source.html)
 12. [Noto Sans Devanagari](https://fonts.google.com/noto/specimen/Noto+Sans+Devanagari)
-
