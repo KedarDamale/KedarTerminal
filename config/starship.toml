@@ -1,0 +1,28 @@
+add_newline = true
+format = "$username$directory$git_branch$git_status$cmd_duration\n$character"
+
+[username]
+show_always = true
+style_user = "bold cyan"
+format = "[$user]($style) › "
+
+[directory]
+style = "bold blue"
+truncation_length = 3
+format = "[$path]($style) "
+
+[git_branch]
+symbol = ""
+style = "#748a9f"
+format = "› [$branch]($style) "
+
+[git_status]
+style = "#748a9f"
+
+[cmd_duration]
+min_time = 2000
+format = "[$duration](#748a9f)"
+
+[character]
+success_symbol = "[❯](bold white)"
+error_symbol = "[❯](bold red)"
