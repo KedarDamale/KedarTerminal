@@ -9,6 +9,7 @@ tests and build tools have been removed.
 config/bash/kedar.bash       Bash greeting, prompt and editor attachment
 config/bash/ble-start.bash   Load Bash suggestions before other startup settings
 config/bash/ble-init.bash    Suggestion and completion settings
+config/bash/header.py       Per-terminal KEDAR/केदार title animation
 config/native/kedar.palette Ptyxis colors
 assets/landscape.png         Version-controlled wallpaper reference
 LICENSE                     Apache-2.0
@@ -20,9 +21,32 @@ settings persist across computer restarts. Bash tools, history, completion,
 PATH and the login shell remain available.
 
 Ptyxis supports a color palette and font preferences. This theme has a solid
-navy background: it does **not** display an aurora image or animated lettering.
-The saved landscape remains an artwork reference. There is no animation process
-or separate terminal launcher.
+navy background: it does **not** display an aurora image or animate lettering
+behind command text.
+The saved landscape remains an artwork reference. A small title animator runs
+per terminal; it only changes the tab/window title. Ptyxis's settings do not
+support moving gradients or animated lines behind the command text.
+
+## Animated header
+
+The header progressively writes **KEDAR**, holds it, erases it, then repeats with
+**केदार**. Marathi letter groups include their vowel marks. A loop lasts ten
+seconds. Command text, suggestions, selections and scrollback are not repainted.
+One process owns each terminal's title; duplicate starts are ignored. It stops
+when the owning Bash process exits. Title updates use the standard OSC 2 sequence.
+
+Open a new normal terminal, or run `exec bash`, to load it. Controls:
+
+```bash
+kedar-header status
+kedar-header stop
+kedar-header start
+```
+
+Stopping leaves a static `KEDAR · केदार` title. For future sessions, set
+`KEDAR_HEADER_ANIMATION=0` before sourcing the theme in `.bashrc`. SSH sessions
+skip the animation. Native terminal/shell title updates may briefly replace
+the name; the animator reasserts its title within half a second.
 
 ## Suggestions and completion
 
@@ -60,6 +84,7 @@ mkdir -p ~/.local/share/org.gnome.Ptyxis/palettes
 cp config/bash/kedar.bash ~/.config/kedar-terminal/native/kedar.bash
 cp config/bash/ble-start.bash ~/.config/kedar-terminal/native/ble-start.bash
 cp config/bash/ble-init.bash ~/.config/kedar-terminal/native/ble-init.bash
+cp config/bash/header.py ~/.config/kedar-terminal/native/header.py
 cp config/native/kedar.palette ~/.local/share/org.gnome.Ptyxis/palettes/kedar.palette
 ```
 

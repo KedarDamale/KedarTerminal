@@ -20,6 +20,24 @@ if [[ ${TERM:-dumb} != dumb ]]; then
     fi
 fi
 
+function kedar-header {
+    local script=~/.config/kedar-terminal/native/header.py
+    local action=${1:-status}
+    local owner=$BASHPID
+    [[ -f $script ]] || return
+    case $action in
+        start)
+            { python3 "$script" "$owner" </dev/null >/dev/null 2>&1 &
+              disown "$!"; } 2>/dev/null
+            ;;
+        stop|status) python3 "$script" "$action" ;;
+        *) printf 'Usage: kedar-header start|stop|status\n' ;;
+    esac
+}
+if [[ ${KEDAR_HEADER_ANIMATION:-1} == 1 && -t 0 && -t 1 && ${TERM:-dumb} != dumb && ! ${SSH_CONNECTION:-} ]]; then
+    kedar-header start
+fi
+
 if declare -F ble-attach >/dev/null; then
     ble-attach
 fi
