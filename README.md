@@ -34,6 +34,9 @@ The header progressively writes **KEDAR**, holds it, erases it, then repeats wit
 seconds. Command text, suggestions, selections and scrollback are not repainted.
 One process owns each terminal's title; duplicate starts are ignored. It stops
 when the owning Bash process exits. Title updates use the standard OSC 2 sequence.
+Each terminal uses its actual PTY device for the lock, so separate windows and
+tabs animate independently. The large greeting inside the terminal is static;
+the animated name appears in the window/tab title.
 
 Open a new normal terminal, or run `exec bash`, to load it. Controls:
 

@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 import signal
+import struct
 import sys
 import time
 
@@ -33,14 +34,18 @@ def title_at(elapsed):
 
 
 def main():
+    mode = sys.argv[1] if len(sys.argv) > 1 else "status"
+    terminal = "/dev/tty" if mode in ("stop", "status") else f"/proc/{int(mode)}/fd/0"
     try:
-        tty = os.open("/dev/tty", os.O_WRONLY | os.O_NOCTTY)
+        tty = os.open(terminal, os.O_WRONLY | os.O_NOCTTY)
     except OSError:
         return 0
     runtime = Path(os.environ.get("XDG_RUNTIME_DIR", Path.home() / ".cache")) / "kedar-header"
     runtime.mkdir(mode=0o700, parents=True, exist_ok=True)
-    path = runtime / f"tty-{os.fstat(tty).st_rdev}.json"
-    mode = sys.argv[1] if len(sys.argv) > 1 else "status"
+    # /dev/tty itself is always device 5:0, regardless of the underlying PTY.
+    # Linux TIOCGDEV returns this terminal's actual device number.
+    device = struct.unpack("I", fcntl.ioctl(tty, 0x80045432, bytes(4)))[0]
+    path = runtime / f"tty-{device}.json"
     if mode in ("stop", "status"):
         try:
             state = json.loads(path.read_text())
